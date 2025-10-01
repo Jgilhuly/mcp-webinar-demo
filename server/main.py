@@ -111,12 +111,11 @@ async def auth_callback(
         config_json = json.dumps(config, indent=2)
         
         # Generate Cursor deeplink
+        # The config should NOT include the server name as a wrapper - just the server configuration
         server_config = {
-            "enterprise-calendar-weather": {
-                "url": f"{settings.BASE_URL}/mcp",
-                "headers": {
-                    "Authorization": f"Bearer {session_token}"
-                }
+            "url": f"{settings.BASE_URL}/mcp",
+            "headers": {
+                "Authorization": f"Bearer {session_token}"
             }
         }
         config_str = json.dumps(server_config)
@@ -173,13 +172,12 @@ async def setup_with_code(request: Request, code: Optional[str] = None):
     config_json = json.dumps(config, indent=2)
     
     # Generate Cursor deeplink
+    # The config should NOT include the server name as a wrapper - just the server configuration
     server_config = {
-        "enterprise-calendar-weather": {
-            "url": f"{settings.BASE_URL}/mcp",
-            "transport": "sse",
-            "headers": {
-                "Authorization": f"Bearer {session_token}"
-            }
+        "url": f"{settings.BASE_URL}/mcp",
+        "transport": "sse",
+        "headers": {
+            "Authorization": f"Bearer {session_token}"
         }
     }
     config_str = json.dumps(server_config)
