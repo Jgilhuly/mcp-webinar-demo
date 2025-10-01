@@ -1,7 +1,8 @@
 """Main FastAPI server with MCP HTTP/SSE endpoint."""
 import json
+import base64
 from typing import Optional
-from fastapi import FastAPI, Request, Header, HTTPException, Query
+from fastapi import FastAPI, Request, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from contextlib import asynccontextmanager
@@ -109,11 +110,25 @@ async def auth_callback(
         
         config_json = json.dumps(config, indent=2)
         
+        # Generate Cursor deeplink
+        server_config = {
+            "enterprise-calendar-weather": {
+                "url": f"{settings.BASE_URL}/mcp",
+                "headers": {
+                    "Authorization": f"Bearer {session_token}"
+                }
+            }
+        }
+        config_str = json.dumps(server_config)
+        config_b64 = base64.b64encode(config_str.encode()).decode()
+        deeplink_url = f"cursor://anysphere.cursor-deeplink/mcp/install?name=enterprise-calendar-weather&config={config_b64}"
+        
         return templates.TemplateResponse("success.html", {
             "request": request,
             "user_email": result["user_email"],
             "config_json": config_json,
             "exchange_code": exchange_code,
+            "deeplink_url": deeplink_url,
         })
         
     except Exception as e:
@@ -157,11 +172,26 @@ async def setup_with_code(request: Request, code: Optional[str] = None):
     
     config_json = json.dumps(config, indent=2)
     
+    # Generate Cursor deeplink
+    server_config = {
+        "enterprise-calendar-weather": {
+            "url": f"{settings.BASE_URL}/mcp",
+            "transport": "sse",
+            "headers": {
+                "Authorization": f"Bearer {session_token}"
+            }
+        }
+    }
+    config_str = json.dumps(server_config)
+    config_b64 = base64.b64encode(config_str.encode()).decode()
+    deeplink_url = f"cursor://anysphere.cursor-deeplink/mcp/install?name=enterprise-calendar-weather&config={config_b64}"
+    
     return templates.TemplateResponse("success.html", {
         "request": request,
         "user_email": payload.get("email", "Unknown"),
         "config_json": config_json,
         "exchange_code": None,
+        "deeplink_url": deeplink_url,
     })
 
 
@@ -219,7 +249,7 @@ async def mcp_endpoint(
             # Keep connection alive
             while True:
                 await asyncio.sleep(30)
-                yield f": keepalive\n\n"
+                yield ": keepalive\n\n"
         
         return StreamingResponse(
             event_stream(),
@@ -233,7 +263,7 @@ async def mcp_endpoint(
     # Parse MCP request for POST
     try:
         body = await request.json()
-    except:
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON")
     
     method = body.get("method")

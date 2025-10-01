@@ -65,11 +65,19 @@ BASE_URL=https://your-app.railway.app
 
 ### 4. Connect to Cursor
 
+**Option A: One-Click Install (Recommended)**
+1. Visit your server URL (local or Railway)
+2. Click "Connect with Google"
+3. Click the "🚀 Install in Cursor Now" button
+4. Done! The MCP server is automatically configured
+
+**Option B: Manual Configuration**
 1. Visit your server URL (local or Railway)
 2. Click "Connect with Google"
 3. Copy the config JSON
-4. Paste into Cursor MCP settings
-5. Done!
+4. Open Cursor settings (`Cmd/Ctrl + ,`)
+5. Search for "MCP" and edit settings.json
+6. Paste the configuration and restart Cursor
 
 ## Tools
 
