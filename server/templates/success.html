@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Server - Authentication Success</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .success-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: white;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .user-info {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        
+        .config-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        pre {
+            margin: 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #1f2937;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .copy-button:hover {
+            background: #5568d3;
+        }
+        
+        .copy-button.copied {
+            background: #10b981;
+        }
+        
+        .instructions {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            color: #1e40af;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .instructions code {
+            background: #dbeafe;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        
+        .exchange-code {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #92400e;
+        }
+        
+        .exchange-code strong {
+            color: #78350f;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+            </svg>
+        </div>
+        
+        <h1>🎉 Authentication Successful!</h1>
+        <div class="user-info">
+            Authenticated as <strong>{{ user_email }}</strong>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">📋 Step 1: Copy Configuration</div>
+            <div class="config-box">
+                <button class="copy-button" onclick="copyConfig()">Copy</button>
+                <pre id="config">{{ config_json }}</pre>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">⚙️ Step 2: Add to Cursor</div>
+            <div class="instructions">
+                <ol>
+                    <li>Open Cursor settings: <code>Cmd/Ctrl + ,</code></li>
+                    <li>Search for "MCP" in settings</li>
+                    <li>Click on "Edit in settings.json" under MCP Servers</li>
+                    <li>Paste the configuration you copied above</li>
+                    <li>Save and restart Cursor</li>
+                </ol>
+            </div>
+        </div>
+        
+        {% if exchange_code %}
+        <div class="exchange-code">
+            <strong>🔐 Alternative:</strong> Use this exchange code in your MCP client: 
+            <code>{{ exchange_code }}</code> (expires in 5 minutes)
+        </div>
+        {% endif %}
+        
+        <div class="footer">
+            Your session token is valid for 24 hours. After that, you'll need to re-authenticate.
+        </div>
+    </div>
+    
+    <script>
+        function copyConfig() {
+            const config = document.getElementById('config').textContent;
+            const button = document.querySelector('.copy-button');
+            
+            navigator.clipboard.writeText(config).then(() => {
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+    </script>
+</body>
+</html>
+
